@@ -1,8 +1,9 @@
 # socket.mq
-HTTP &amp; WebSocket based brokerless message queue for enterprise solutions
+HTTP &amp; WebSocket based brokerless message queue
 * M2M and inter-process communication
 * Simple architecture
 * Simple API
+* Language-independent
 * Two patterns supported: Request-Reply and Publish-Subscribe
 * Both client and server can publish and subcribe events
 * Built-in authentication mechanism
@@ -29,3 +30,36 @@ Some network environments may restrict traffic between machines to http port 80.
 ![Example](http://www.gliffy.com/go/publish/image/7237101/L.png)
 
 Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.com/nodejitsu/node-http-proxy)) to allow Frontend to communicate with other applications at server side.
+
+## Communication Architecture Overview
+
+### Request-Reply
+REST
+
+### Publish-Subscribe
+WebSocket
+
+### Authentication
+TBD
+
+### Interface Versioing
+TBD
+Should the version number be part of the url?
+
+### Data Format
+TBD
+Google Protocols for binary data?
+
+## Comparison with Other MQ and Similar Solutions
+
+### socket.io
+Socket.mq resembles [socket.io](http://socket.io) in many ways. Socket.io can be  replaced by socket.mq with a little effort. Major differences include:
+* Socket.io is fixed to JavaScript language
+* Socket.io downgrades from WebSocket to HTTP polling if WebSocket transport has been prevented by network configuration
+* Socket.mq client-side library must be installed separately (as a bower package)
+
+### ZeroMQ
+* ZeroMQ has a more complex functionality and API
+* ZeroMQ is a message queue library whereas socket.mq is primarily a communication architecture. While socket.mq architecture is so simple you don't necessarily need a library to use it.
+* Each ZeroMQ endpoint listens to its own dedicated TCP port. You cannot reverse-proxy them to a single TCP port for M2M communication.
+* ZeroMQ performs better while socket.mq has quite a good performance as well when considering long-term Publisher-Subscriber connections.
