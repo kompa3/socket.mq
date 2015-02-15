@@ -37,34 +37,35 @@ Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.c
 ## Architecture Overview
 
 ### Client-Server Architecture
-Socket.mq connection is established by the cli
-
-In Request-Reply pattern, client makes the request and server replies.
-
-In Publish-Subscribe pattern, 
+Socket.mq connection starts when a client connects to a server.
+* In Request-Reply pattern, the client makes the request and the server replies. The connection ends after that.
+* In Publish-Subscribe pattern, the client connects to the server and both can start listening on each other's events. The connection ends when one of the parties ends it.
 
 ### Request-Reply
 Request-Reply pattern uses simple HTTP REST methods.
-#### Request
-HTTP POST: http://machine:port/socket.mq/application/request-id
 
+Request:
+* HTTP POST: http://machine:port/socket.mq/application/request-id
+* Request body contains the request in application-specific data format.
+* TBD. Content-Type field, is it application-specific as well?
 
-Request body contains the request in application-specific data format.
-TBD. Content-Type field, is it application-specific as well?
-
-#### Reply
-HTTP/1.1 200 OK (or any of the error codes)
-
-Reply body contains the reply in application-specific data format.
+Reply:
+* HTTP/1.1 200 OK (or any of the error codes)
+* Reply body contains the reply in application-specific data format.
 
 ### Publish-Subscribe
-WebSocket
+TBD. WebSocket
 
 ### Authentication and Encryption
-OpenPGP is used for both client authentication and data encryption. Both client
-1. aer
-2. 
+OpenPGP is used for both client authentication and data encryption. Both client and server need to know each other's public key.
 
+Request-Reply pattern:
+1. Client sends the request body encrypted with the public key of the server and signed with the private key of the client
+2. Server decrypts and verifies the request body using its own private key and the public key of the client
+3. Server sends the reply body encrypted and signed in a similar fashion
+4. Client decrypts and verifies the reply body
+
+The above procedure verifies ...
 TBD
 Do not use the built-in authentication mechanism with Frontend. Any credentials known by Frontend are automatically accessible by anyone. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
