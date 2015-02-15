@@ -1,19 +1,22 @@
 # socket.mq
+Status: DRAFT
+
 HTTP &amp; WebSocket based brokerless message queue
 * M2M and inter-process communication
 * Simple architecture
-* Simple API
+* Easy-to-use API
 * Language-independent
 * Two patterns supported: Request-Reply and Publish-Subscribe
 * Both client and server can publish and subcribe events
-* Built-in authentication mechanism
-* Encryption possible with SSL when needed
+* Built-in authentication and encryption mechanism
 * May be used for Frontend-Backend communication in HTML5 applications
 * Frontend can easily communicate with other backend applications at server side
-* JSON and binary data supported
+* No restrictions on data format
 * Interface versioning built-in
-* Nginx-friendly
-* Especially handy in such network environments where only http traffic is allowed
+* Proxying possible, eg. all applications proxied at a single http port
+
+## API Examples
+TBD
 
 ## Network Architecture Examples
 ### Brokerless Communication
@@ -31,22 +34,43 @@ Some network environments may restrict traffic between machines to http port 80.
 
 Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.com/nodejitsu/node-http-proxy)) to allow Frontend to communicate with other applications at server side.
 
-## Communication Architecture Overview
+## Architecture Overview
+
+### Client-Server Architecture
+Socket.mq connection is established by the cli
+
+In Request-Reply pattern, client makes the request and server replies.
+
+In Publish-Subscribe pattern, 
 
 ### Request-Reply
-REST
+Request-Reply pattern uses simple HTTP REST methods.
+#### Request
+HTTP POST: http://machine:port/socket.mq/application/request-id
+
+
+Request body contains the request in application-specific data format.
+TBD. Content-Type field, is it application-specific as well?
+
+#### Reply
+HTTP/1.1 200 OK (or any of the error codes)
+
+Reply body contains the reply in application-specific data format.
 
 ### Publish-Subscribe
 WebSocket
 
-### Authentication
-TBD
+### Authentication and Encryption
+OpenPGP is used for both client authentication and data encryption. Both client
+1. aer
+2. 
 
-Do not use the built-in authentication mechanism with Frontend. Any key known by Frontend is automatically accessible by anyone. Instead, Frontend authentication should take place at Backend with a per-session or per-user manner.
+TBD
+Do not use the built-in authentication mechanism with Frontend. Any credentials known by Frontend are automatically accessible by anyone. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
 ### Interface Versioing
 TBD
-Should the version number be part of the url?
+Should the version number be part of the url? Or as HTTP header?
 
 ### Data Format
 TBD
@@ -57,11 +81,23 @@ Google Protocols for binary data?
 ### socket.io
 Socket.mq resembles [socket.io](http://socket.io) in many ways. Socket.io can be  replaced by socket.mq with a little effort. Major differences include:
 * Socket.io is fixed to JavaScript language
-* Socket.io downgrades from WebSocket to HTTP polling if WebSocket transport has been prevented by network configuration
-* Socket.mq client-side library must be installed separately (as a bower package)
+* Socket.io has the ability to downgrade from WebSocket to HTTP polling if WebSocket transport fails
+* Socket.mq client-side library is installed separately (as a bower package) whereas in socket.io the backend and client-side libraries are bundled together
 
 ### ZeroMQ
-* ZeroMQ has a more complex functionality and API
-* ZeroMQ is a message queue library whereas socket.mq is primarily a communication architecture. While socket.mq architecture is so simple you don't necessarily need a library to use it.
-* Each ZeroMQ endpoint listens to its own dedicated TCP port. You cannot reverse-proxy them to a single TCP port for M2M communication.
+* ZeroMQ has a more feature-rich functionality and API
+* ZeroMQ is a message queue library whereas socket.mq is primarily a message queue architecture
+* Each ZeroMQ endpoint listens to its own dedicated TCP port. You cannot proxy them to a single TCP port for M2M communication.
 * ZeroMQ performs better while socket.mq has quite a good performance as well when considering long-term Publisher-Subscriber connections.
+* ZeroMQ has no support for authentication and encryption
+
+## Roadmap
+
+### Version 1
+Currently at draft status
+
+### Version 2
+Support for service discovery
+
+### Version 3
+Certificate support so that server public keys do not need to be configured for each client manually.
