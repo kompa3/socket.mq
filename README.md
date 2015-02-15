@@ -42,6 +42,8 @@ WebSocket
 ### Authentication
 TBD
 
+Do not use the built-in authentication mechanism with Frontend. Any key known by Frontend is automatically accessible by anyone. Instead, Frontend authentication should take place at Backend with a per-session or per-user manner.
+
 ### Interface Versioing
 TBD
 Should the version number be part of the url?
