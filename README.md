@@ -3,8 +3,9 @@ Status: DRAFT
 
 HTTP &amp; WebSocket based brokerless message queue
 * M2M and inter-process communication
-* Simple architecture
-* Easy-to-use API
+* Coherent and simple architecture
+* Determenistic behavior
+* Easy-to-use and stable API
 * Language-independent
 * Two patterns supported: Request-Reply and Publish-Subscribe
 * Both client and server can publish and subcribe events
@@ -16,6 +17,9 @@ HTTP &amp; WebSocket based brokerless message queue
 * Proxying possible, eg. all applications proxied at a single http port
 
 ## API Examples
+TBD
+
+## Implementations
 TBD
 
 ## Network Architecture Examples
@@ -83,7 +87,8 @@ Google Protocols for binary data?
 Socket.mq resembles [socket.io](http://socket.io) in many ways. Socket.io can be  replaced by socket.mq with a little effort. Major differences include:
 * Socket.io is fixed to JavaScript language
 * Socket.io has the ability to downgrade from WebSocket to HTTP polling if WebSocket transport fails
-* Socket.mq client-side library is installed separately (as a bower package) whereas in socket.io the backend and client-side libraries are bundled together
+* Socket.mq behaves more deterministically in particular concerning transport times
+* Socket.mq client-side library is installed separately (as a bower package) whereas in socket.io bundles together the backend and client-side libraries
 
 ### ZeroMQ
 * ZeroMQ has a more feature-rich functionality and API
@@ -91,6 +96,7 @@ Socket.mq resembles [socket.io](http://socket.io) in many ways. Socket.io can be
 * Each ZeroMQ endpoint listens to its own dedicated TCP port. You cannot proxy them to a single TCP port for M2M communication.
 * ZeroMQ performs better while socket.mq has quite a good performance as well when considering long-term Publisher-Subscriber connections.
 * ZeroMQ has no support for authentication and encryption
+* ZeroMQ has no built-in interface versioning
 
 ## Roadmap
 
