@@ -5,7 +5,7 @@ HTTP &amp; WebSocket based brokerless message queue
 * M2M and inter-process communication
 * Coherent and simple architecture
 * Determenistic behavior
-* Easy-to-use and stable API
+* Easy-to-use and explicit API
 * Language-independent
 * Two patterns supported: Request-Reply and Publish-Subscribe
 * Both client and server can publish and subcribe events
@@ -106,5 +106,3 @@ Currently at draft status
 ### Version 2
 Support for service discovery
 
-### Version 3
-Certificate support so that server public keys do not need to be configured for each client manually.
