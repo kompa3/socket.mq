@@ -60,18 +60,30 @@ Reply:
 ### Publish-Subscribe
 TBD. WebSocket
 
+Events are sent only to subscribers to reduce network traffic ie. publisher maintains a list of subscribers.
+
 ### Authentication and Encryption
-OpenPGP is used for both client authentication and data encryption. Both client and server need to know each other's public key.
+![Authentication](http://www.gliffy.com/go/publish/image/7292741/L.png)
+
+OpenPGP is used for both authentication and data encryption. Both client and server need to know each other's public key to enable:
+* Client authentication by server (only authorized clients are allowed to connect)
+* Server authentication by client (to prevent man-in-the-middle attacks)
+* Event-level subscription access control in Publish-Subscribe pattern (at both Client and Server end)
+* Request-level access control in Request-Reply pattern
+* Data encryption with the public key of the receiver
+
+NOTE: Do not use the built-in authentication mechanism for Frontend-Backend communication. A private key known by Frontend can be easily hacked. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
 Request-Reply pattern:
+
 1. Client sends the request body encrypted with the public key of the server and signed with the private key of the client
 2. Server decrypts and verifies the request body using its own private key and the public key of the client
 3. Server sends the reply body encrypted and signed in a similar fashion
 4. Client decrypts and verifies the reply body
 
-The above procedure verifies ...
+Publish-Subscribe pattern:
+
 TBD
-Do not use the built-in authentication mechanism with Frontend. Any credentials known by Frontend are automatically accessible by anyone. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
 ### Interface Versioing
 TBD
