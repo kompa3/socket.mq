@@ -139,8 +139,8 @@ TBD
 ### Public Key Interface
 An application acting as a socket.mq server may offer its public key at http://machine/socket.mq/public-key. Public key request does not require authentication. The Public Key Interface serves the following purposes:
 
-1. An administrator can manually download and install server public key to the client's key repository at system commissioning time.
-2. When configured so, Client can automatically download and install the Server public key when it it connects to the Server at the first time. After that, Client should not automatically accept a changed public key without manual approval to prevent man-in-the-middle attacks.
+* An administrator can manually download and install server public key to the client's key repository at system commissioning time.
+* When configured so, Client can automatically download and install the Server public key when it it connects to the Server at the first time. After that, Client should not automatically accept a changed public key without manual approval to prevent man-in-the-middle attacks.
 
 ### Interface Versioing
 TBD
