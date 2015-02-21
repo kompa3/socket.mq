@@ -18,14 +18,36 @@ HTTP &amp; WebSocket based brokerless message queue
 
 ## API
 
-Socket.mq implementation may provide Server or Client API, or both. Depending on the implementation, the functions may have additional arguments such as callbacks for asynchronous functions.
-### Server API
-function | (a)synchronous | description
---- | --- | ---
-listen(port: number, securityOptions: object) | Implementation specific | Starts the server on the given port.
+Socket.mq implementation may provide Server or Client API, or both
 
-securityOptions object has the following fields:
-* 
+Functions may be implemented synchronously or asynchronously. Depending on the implementation, the functions may have additional arguments or return values in addition to those specified below.
+
+TBD. Should we register other peers with a uniform API for both Server and Client API usage? So that we could refer to applications instead of addresses or keys.
+
+### Server API
+| function | description |
+| --- | --- |
+| listen(port: number, applicationName: string, securityOptions: SecurityOptions, requestCallback: RequestCallback, subscribeCallback: SubscribeCallback) | Starts the server on the given port. |
+| close() | Stop the server and close resources |
+
+TBD. listen() method may be quite different when used eg. with Express.
+
+SecurityOptions object contains the following fields (note that fields used to define keys may vary according to the implementation):
+* securityEnabled {boolean} True if Server allows Client to establish secure connection to Server
+* securityMethod {string or enumeration} Only `OpenPGP` supported by socket.mq version 1.0
+* securityRequired {boolean} True if Server accepts only secure connections from Clients
+* publicKey {string} Public key of the Server used for authentication and encryption (ASCII-armored format)
+* keyRing {string[]} Public keys of the Clients allowed to connect (ASCII-armored format)
+
+RequestCallback function has the following arguments:
+* TBD. Is this needed/relevant?? sourceAddress {hostname or IP address} Address where the request came from (TBD. note that it may be the address of the reverse proxy server??)
+* request {string} Request id (part of the URL)
+* requestBody {binary data} Request body data
+* response {ResponseFuction} Function used to response to the request
+
+TBD. ResponseFunction
+
+TBD. SubscribeCallback
 
 ## Implementations
 TBD
@@ -65,15 +87,23 @@ Request:
 * TBD. Content-Type field, is it application-specific as well?
 
 Reply:
-* HTTP/1.1 200 OK (or any of the error codes)
 * Reply body contains the reply in application-specific data format.
+
+TBD. HTTP header telling source address. Nginx reverse proxy -> which HTTP headers telling source address are kept intact as default?
+
+Server responds with the following HTTP status codes:
+
+| status code | used when |
+| --- | --- |
+| 200 (OK) | Request successful |
+| Other error codes | Application-specific errors |
 
 ### Publish-Subscribe
 TBD. WebSocket
 
 Events are sent only to subscribers to reduce network traffic ie. publisher maintains a list of subscribers.
 
-### Authentication and Encryption
+### Security
 ![Authentication](http://www.gliffy.com/go/publish/image/7292741/L.png)
 
 OpenPGP is used for both authentication and data encryption. Both client and server need to know each other's public key to enable:
@@ -83,7 +113,7 @@ OpenPGP is used for both authentication and data encryption. Both client and ser
 * Request-level access control in Request-Reply pattern
 * Data encryption with the public key of the receiver
 
-NOTE: Do not use the built-in authentication mechanism for Frontend-Backend communication. A private key known by Frontend can be easily hacked. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
+NOTE: Do not use the built-in security mechanism for Frontend-Backend communication. A private key known by Frontend can be easily hacked. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
 Request-Reply pattern:
 
@@ -92,13 +122,15 @@ Request-Reply pattern:
 3. Server sends the reply body encrypted and signed in a similar fashion
 4. Client decrypts and verifies the reply body
 
-Server may respond with the following HTTP status codes:
+HTTP request has the following header field set to indicate Server that the Client wants to establish a secured socket.mq connection: `Security-Method: OpenPGP`. A Server may accept both secure and insecure socket.mq connections from Clients.
+
+Server may respond with the following HTTP error codes:
 
 | status code | used when |
 | --- | --- |
 | 401 (Unauthorized) | Server fails to decrypt the message, probably due to Client public key not having been registered to the Server |
 | 403 (Forbidden) | Authenticated Client is not authorized to make the request |
-| Other error codes | Application-specific errors |
+| 496 (No Cert) | Client request did not have Security-Method field and Server does not accept insecure connections |
 
 Publish-Subscribe pattern:
 
