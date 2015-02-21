@@ -1,5 +1,5 @@
 # socket.mq
-Status: DRAFT
+Status: 0.1 DRAFT
 
 HTTP &amp; WebSocket based brokerless message queue
 * M2M and inter-process communication
@@ -16,8 +16,16 @@ HTTP &amp; WebSocket based brokerless message queue
 * Interface versioning built-in
 * Proxying possible, eg. all applications proxied at a single http port
 
-## API Examples
-TBD
+## API
+
+Socket.mq implementation may provide Server or Client API, or both. Depending on the implementation, the functions may have additional arguments such as callbacks for asynchronous functions.
+### Server API
+function | (a)synchronous | description
+--- | --- | ---
+listen(port: number, securityOptions: object) | Implementation specific | Starts the server on the given port.
+
+securityOptions object has the following fields:
+* 
 
 ## Implementations
 TBD
@@ -44,6 +52,9 @@ Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.c
 Socket.mq connection starts when a client connects to a server.
 * In Request-Reply pattern, the client makes the request and the server replies. The connection ends after that.
 * In Publish-Subscribe pattern, the client connects to the server and both can start listening on each other's events. The connection ends when one of the parties ends it.
+
+### URL Format
+TBD
 
 ### Request-Reply
 Request-Reply pattern uses simple HTTP REST methods.
@@ -81,9 +92,22 @@ Request-Reply pattern:
 3. Server sends the reply body encrypted and signed in a similar fashion
 4. Client decrypts and verifies the reply body
 
+Server may respond with the following HTTP status codes:
+
+| status code | used when |
+| --- | --- |
+| 401 (Unauthorized) | Server fails to decrypt the message, probably due to Client public key not having been registered to the Server |
+| 403 (Forbidden) | Authenticated Client is not authorized to make the request |
+| Other error codes | Application-specific errors |
+
 Publish-Subscribe pattern:
 
 TBD
+
+### Public Key Interface
+An application acting as a socket.mq server may offer its public key at http://machine/socket.mq/public-key. Public key request does not require authentication. The Public Key Interface serves the following purposes:
+1. An administrator can manually download and install server public key to the client's key repository at system commissioning time.
+2. When configured so, Client can automatically download and install the Server public key when it it connects to the Server at the first time. After that, Client should not automatically accept a changed public key without manual approval to prevent man-in-the-middle attacks.
 
 ### Interface Versioing
 TBD
@@ -91,16 +115,16 @@ Should the version number be part of the url? Or as HTTP header?
 
 ### Data Format
 TBD
-Google Protocols for binary data?
+
 
 ## Comparison with Other MQ and Similar Solutions
 
 ### socket.io
 Socket.mq resembles [socket.io](http://socket.io) in many ways. Socket.io can be  replaced by socket.mq with a little effort. Major differences include:
-* Socket.io is fixed to JavaScript language
+* Socket.io is intended for Frontend-Backend communication only whereas socket.io allows communication between multiple parties in a cross-platform manner
 * Socket.io has the ability to downgrade from WebSocket to HTTP polling if WebSocket transport fails
-* Socket.mq behaves more deterministically in particular concerning transport times
-* Socket.mq client-side library is installed separately (as a bower package) whereas in socket.io bundles together the backend and client-side libraries
+* Socket.mq architecture guarantees more determenistic behavior than socket.io in particular concerning transport times and reliability
+* Socket.mq JavaScript client-side library is installed separately (as a bower package) whereas socket.io bundles together the backend and client-side libraries
 
 ### ZeroMQ
 * ZeroMQ has a more feature-rich functionality and API
@@ -117,4 +141,8 @@ Currently at draft status
 
 ### Version 2
 Support for service discovery
+
+## References
+
+* OpenPGP [standard](https://tools.ietf.org/html/rfc4880) and an [overview](http://www.spywarewarrior.com/uiuc/gpg/gpg-com-4.htm) of GnuPG commands that explains the principles of PGP as well
 
