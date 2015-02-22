@@ -1,20 +1,14 @@
 # socket.mq
-Status: 0.1 DRAFT
+Status: 0.1 DRAFT / IN PROGRESS
 
 HTTP &amp; WebSocket based brokerless message queue
-* M2M and inter-process communication
-* Coherent and simple architecture
-* Determenistic behavior
-* Easy-to-use and explicit API
-* Language-independent
+* M2M, inter-process, and Frontend-Backend communication
+* Coherent and simple architecture that guarantees determenistic behavior
+* Easy-to-use explicit API
+* Language-independent cross-platform communication
 * Two patterns supported: Request-Reply and Publish-Subscribe
-* Both client and server can publish and subcribe events
-* Built-in authentication and encryption mechanism
-* May be used for Frontend-Backend communication in HTML5 applications
-* Frontend can easily communicate with other backend applications at server side
-* No restrictions on data format
-* Interface versioning built-in
-* Proxying possible, eg. all applications proxied at a single http port
+* Built-in security (authentication and encryption)
+* Built-in interface versioning
 
 ## API
 
@@ -22,32 +16,45 @@ Socket.mq implementation may provide Server or Client API, or both
 
 Functions may be implemented synchronously or asynchronously. Depending on the implementation, the functions may have additional arguments or return values in addition to those specified below.
 
-TBD. Should we register other peers with a uniform API for both Server and Client API usage? So that we could refer to applications instead of addresses or keys.
+TBD. Should we register other peers with a uniform API for both Server and Client API usage? So that we could refer to applications instead of addresses or keys. Probably not, see public key id below.
+
+TBD. Also a common api for publishing events (possibly to multiple active connections), and subscribing to events (from a specified application). The event interface is similar to clients and servers.
 
 ### Server API
-| function | description |
-| --- | --- |
-| listen(port: number, applicationName: string, securityOptions: SecurityOptions, requestCallback: RequestCallback, subscribeCallback: SubscribeCallback) | Starts the server on the given port. |
-| close() | Stop the server and close resources |
+| member | arguments | description |
+| --- | --- | --- |
+| constructor or listen() method | port: number, applicationName: string, securityOptions: SecurityOptions | Starts the server on the given port. |
+| request event or callback | See below | Event or callback called when Client makes a request to Server |
+| subscribe event or callback | See below | Event or callback called when Client subscribes to an event. Optional, if not defined all events can be subscribed to. |
+| destructor or close() method | Stop the server and free resources |
 
 TBD. listen() method may be quite different when used eg. with Express.
 
-SecurityOptions object contains the following fields (note that fields used to define keys may vary according to the implementation):
-* securityEnabled {boolean} True if Server allows Client to establish secure connection to Server
+SecurityOptions contains the following fields (note that fields used to define keys may vary according to the implementation):
+* securityEnabled {boolean} True if Server allows Clients to establish secure connection to Server
 * securityMethod {string or enumeration} Only `OpenPGP` supported by socket.mq version 1.0
 * securityRequired {boolean} True if Server accepts only secure connections from Clients
-* publicKey {string} Public key of the Server used for authentication and encryption (ASCII-armored format)
-* keyRing {string[]} Public keys of the Clients allowed to connect (ASCII-armored format)
+* publicKey {string} Armored public key of the Server used for authentication and encryption
+* keyRing {string[]} Armored public keys of the Clients allowed to connect
 
-RequestCallback function has the following arguments:
-* TBD. Is this needed/relevant?? sourceAddress {hostname or IP address} Address where the request came from (TBD. note that it may be the address of the reverse proxy server??)
+Note that the application identifier is encoded as part of the public key.
+
+Request event or callback has the following arguments:
 * request {string} Request id (part of the URL)
-* requestBody {binary data} Request body data
-* response {ResponseFuction} Function used to response to the request
+* requestBody {binary data} Request body data in application-specific format
+* clientID {string} Client application if decoded from public key, not defined for plain connections
+* respond() {see below} Function used to respond to the request
 
-TBD. ResponseFunction
+Respond function has the followin arguments:
+* respondStatus {number} HTTP status code returned to Client
+* respondBody {binary data} Respond body data in application-specific format, optional
 
 TBD. SubscribeCallback
+Subscribe event or callback has the following arguments:
+* event {string} Event subscribed to
+* clientID {string} Client application if decoded from public key, not defined for plain connections
+* accept() {function} Server accepts event subscription by calling this function
+* reject(errorCode: number) {function} Server rejects event subscription by calling this fuction. The error code is returned to Client as HTTP status code.
 
 ## Implementations
 TBD
@@ -70,10 +77,14 @@ Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.c
 
 ## Architecture Overview
 
-### Client-Server Architecture
-Socket.mq connection starts when a client connects to a server.
-* In Request-Reply pattern, the client makes the request and the server replies. The connection ends after that.
-* In Publish-Subscribe pattern, the client connects to the server and both can start listening on each other's events. The connection ends when one of the parties ends it.
+### Connection
+Socket.mq connection parties are called applications. A connection starts when Client connects to Server.
+* In Request-Reply pattern, the Client makes the request and the Server replies. The connection ends after that.
+* In Publish-Subscribe pattern, the Client connects to the Server and both can start listening on each other's events. The connection ends when one of the parties ends it.
+
+Connection can be either plain or secure connection.
+* In plain connection, Client is not authenticated and Server responds identically to all Clients (ie. it cannot restrict requests or event subscription to specific Clients only)
+* In secure connection, Client is authenticated and the traffic is encrypted. Server may restrict requests and event subscriptions to specific Client only.
 
 ### URL Format
 TBD
@@ -90,6 +101,8 @@ Reply:
 * Reply body contains the reply in application-specific data format.
 
 TBD. HTTP header telling source address. Nginx reverse proxy -> which HTTP headers telling source address are kept intact as default?
+
+
 
 Server responds with the following HTTP status codes:
 
