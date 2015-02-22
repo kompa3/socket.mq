@@ -16,8 +16,6 @@ Socket.mq implementation may provide Server or Client API, or both
 
 Functions may be implemented synchronously or asynchronously. Depending on the implementation, the functions may have additional arguments or return values in addition to those specified below.
 
-TBD. Should we register other peers with a uniform API for both Server and Client API usage? So that we could refer to applications instead of addresses or keys. Probably not, see public key id below.
-
 ### Event Interface
 | member | arguments | description |
 | --- | --- | --- |
@@ -42,6 +40,7 @@ Event callback has the following arguments:
 | --- | --- | --- |
 | constructor or listen() method | port: number, applicationName: string, securityOptions: SecurityOptions | Starts the server on the given port. |
 | request callback | See below | Callback called when Client makes a request to Server |
+| connect callback | See below, TBD | TBD, is this rational? |
 | destructor or close() method | Stop the server and free resources |
 
 TBD. listen() method may be quite different when used eg. with Express.
@@ -66,7 +65,7 @@ Respond function has the following arguments:
 * data {binary data} Respond body data in application-specific format, optional
 
 ## Implementations
-TBD
+* [Socket.mq-nodejs](https://github.com/kompa3/socket.mq-nodejs)
 
 ## Network Architecture Examples
 ### Brokerless Communication
@@ -84,6 +83,10 @@ Some network environments may restrict traffic between machines to http port 80.
 
 Nodejs Backend acts as a HTTP proxy (eg. with [node-http-proxy](https://github.com/nodejitsu/node-http-proxy)) to allow Frontend to communicate with other applications at server side.
 
+### Mobile Application
+
+TBD. Mobile application generates its own key send posts the public key via request interface, providing application-specific (temporary?) credentials for "logging in". After that, no logging-in needed since authentication by keys.
+
 ## Architecture Overview
 
 ### Connection
@@ -95,22 +98,30 @@ Connection can be either plain or secure connection.
 * In plain connection, parties are not authenticated securely and the traffic is in plain non-encrypted format.
 * In secure connection, parties are authenticated securely and the traffic is encrypted.
 
-### URL Format
-TBD
-
 ### Request-Reply
+
+TBD. What about changing HTTP REST to WebSocket, ie. Request-Reply happens over an established WebSocket communciation channel?
+* Improved performance
+* More logical API (connect event)
+* Server can request from Client
+
 Request-Reply pattern uses simple HTTP REST methods.
 
 Request:
-* HTTP POST: http://machine:port/socket.mq/application/request-id
-* Request body contains the request in application-specific data format.
+* HTTP POST: http://machine:port/socket.mq/app1/request-id where
+** machine is the address (host name or IP address)
+** port is TCP port listened to by the Server application
+** app1 is the application ID of the Server connected to
+** request-id is the identifier of the request made
+* Request body contains the request data in application-specific format
 * HTTP header fields:
 ** Client-ID: Client application ID for plain connections
 ** TBD. Content-Type field, is it application-specific?
 ** TBD. Interface version
 
 Reply:
-* Reply body contains the reply in application-specific data format.
+* HTTP status code, see below
+* Reply body contains the reply data in application-specific format
 
 Server responds with the following HTTP status codes:
 
@@ -120,7 +131,14 @@ Server responds with the following HTTP status codes:
 | Other error codes | Application-specific errors |
 
 ### Publish-Subscribe
+Publish-Subscribe pattern uses WebSocket protocol to establish a live connection between the applications.
+
+Connection by Client:
+* WebSocket URL: ws://machine:port/socket.mq/app1
+* 
 TBD. WebSocket
+
+subprotocol: socket.mq
 
 Events are sent only to subscribers to reduce network traffic. A publisher maintains a list of event subscribers.
 
@@ -133,6 +151,10 @@ OpenPGP is used for both authentication and data encryption. Both client and ser
 * Event-level subscription access control in Publish-Subscribe pattern (at both Client and Server end)
 * Request-level access control in Request-Reply pattern
 * Data encryption with the public key of the receiver
+
+Rationale for using PGP instead of SSL or TSL:
+* Socket.mq is intended for m2m communication where there might not exist Internet connection, CA servers, or DNS names.
+* See a related [article](http://www.techrepublic.com/blog/it-security/why-not-use-openpgp-for-web-authentication/) about using OpenPGP instead of TLS for web authentication
 
 NOTE: Do not use the built-in security mechanism for Frontend-Backend communication. A private key known by Frontend can be easily hacked. Instead, Frontend authentication should take place at Backend by a per-session or per-user basis.
 
