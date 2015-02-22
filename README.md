@@ -22,16 +22,26 @@ TBD. Should we register other peers with a uniform API for both Server and Clien
 | member | arguments | description |
 | --- | --- | --- |
 | publish() | event: string, data: binary | Publish the event to all the subscribers. Data (optional) is in application-specific format. |
-| subscribe() | 
+| subscribe() | applicationID: string, event: string | Subscribe to the event of a connected application. |
+| subscribe callback | See below | Callback called when an application wants to subscribe to my event. Optional. If not defined all events can be subscribed to by connected applications. |
+| event callback | See below | Callback called when a subscribed event has been received from the connected publisher. |
 
-TBD. Also a common api for publishing events (possibly to multiple active connections), and subscribing to events (from a specified application). The event interface is similar to clients and servers.
+Subscribe callback has the following arguments:
+* event {string} Event subscribed to
+* applicationID {string} ID of application that wants to subscribe
+* accept() {function} Accept event subscription by calling this function
+* reject(errorCode: number) {function} Reject event subscription by calling this fuction. The error code is returned as HTTP status code.
+
+Event callback has the following arguments:
+* applicationID {string} Application ID that published the event
+* event {string} Event ID
+* data {binary data} Event data in application-specific format
 
 ### Server Interface
 | member | arguments | description |
 | --- | --- | --- |
 | constructor or listen() method | port: number, applicationName: string, securityOptions: SecurityOptions | Starts the server on the given port. |
-| request event or callback | See below | Event or callback called when Client makes a request to Server |
-| subscribe event or callback | See below | Event or callback called when Client subscribes to an event. Optional, if not defined all events can be subscribed to. |
+| request callback | See below | Callback called when Client makes a request to Server |
 | destructor or close() method | Stop the server and free resources |
 
 TBD. listen() method may be quite different when used eg. with Express.
@@ -45,22 +55,15 @@ SecurityOptions contains the following fields (note that fields used to define k
 
 Note that the application identifier is encoded as part of the public key.
 
-Request event or callback has the following arguments:
+Request callback has the following arguments:
 * request {string} Request id (part of the URL)
-* requestBody {binary data} Request body data in application-specific format
+* data {binary data} Request body data in application-specific format
 * clientID {string} Client application ID
 * respond() {see below} Function used to respond to the request
 
 Respond function has the following arguments:
 * respondStatus {number} HTTP status code returned to Client
-* respondBody {binary data} Respond body data in application-specific format, optional
-
-TBD. SubscribeCallback
-Subscribe event or callback has the following arguments:
-* event {string} Event subscribed to
-* clientID {string} Client application ID
-* accept() {function} Server accepts event subscription by calling this function
-* reject(errorCode: number) {function} Server rejects event subscription by calling this fuction. The error code is returned to Client as HTTP status code.
+* data {binary data} Respond body data in application-specific format, optional
 
 ## Implementations
 TBD
@@ -119,7 +122,7 @@ Server responds with the following HTTP status codes:
 ### Publish-Subscribe
 TBD. WebSocket
 
-Events are sent only to subscribers to reduce network traffic ie. publisher maintains a list of subscribers.
+Events are sent only to subscribers to reduce network traffic. A publisher maintains a list of event subscribers.
 
 ### Security
 ![Authentication](http://www.gliffy.com/go/publish/image/7292741/L.png)
