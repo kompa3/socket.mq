@@ -18,9 +18,15 @@ Functions may be implemented synchronously or asynchronously. Depending on the i
 
 TBD. Should we register other peers with a uniform API for both Server and Client API usage? So that we could refer to applications instead of addresses or keys. Probably not, see public key id below.
 
+### Event Interface
+| member | arguments | description |
+| --- | --- | --- |
+| publish() | event: string, data: binary | Publish the event to all the subscribers. Data (optional) is in application-specific format. |
+| subscribe() | 
+
 TBD. Also a common api for publishing events (possibly to multiple active connections), and subscribing to events (from a specified application). The event interface is similar to clients and servers.
 
-### Server API
+### Server Interface
 | member | arguments | description |
 | --- | --- | --- |
 | constructor or listen() method | port: number, applicationName: string, securityOptions: SecurityOptions | Starts the server on the given port. |
@@ -42,17 +48,17 @@ Note that the application identifier is encoded as part of the public key.
 Request event or callback has the following arguments:
 * request {string} Request id (part of the URL)
 * requestBody {binary data} Request body data in application-specific format
-* clientID {string} Client application if decoded from public key, not defined for plain connections
+* clientID {string} Client application ID
 * respond() {see below} Function used to respond to the request
 
-Respond function has the followin arguments:
+Respond function has the following arguments:
 * respondStatus {number} HTTP status code returned to Client
 * respondBody {binary data} Respond body data in application-specific format, optional
 
 TBD. SubscribeCallback
 Subscribe event or callback has the following arguments:
 * event {string} Event subscribed to
-* clientID {string} Client application if decoded from public key, not defined for plain connections
+* clientID {string} Client application ID
 * accept() {function} Server accepts event subscription by calling this function
 * reject(errorCode: number) {function} Server rejects event subscription by calling this fuction. The error code is returned to Client as HTTP status code.
 
@@ -83,8 +89,8 @@ Socket.mq connection parties are called applications. A connection starts when C
 * In Publish-Subscribe pattern, the Client connects to the Server and both can start listening on each other's events. The connection ends when one of the parties ends it.
 
 Connection can be either plain or secure connection.
-* In plain connection, Client is not authenticated and Server responds identically to all Clients (ie. it cannot restrict requests or event subscription to specific Clients only)
-* In secure connection, Client is authenticated and the traffic is encrypted. Server may restrict requests and event subscriptions to specific Client only.
+* In plain connection, parties are not authenticated securely and the traffic is in plain non-encrypted format.
+* In secure connection, parties are authenticated securely and the traffic is encrypted.
 
 ### URL Format
 TBD
@@ -95,14 +101,13 @@ Request-Reply pattern uses simple HTTP REST methods.
 Request:
 * HTTP POST: http://machine:port/socket.mq/application/request-id
 * Request body contains the request in application-specific data format.
-* TBD. Content-Type field, is it application-specific as well?
+* HTTP header fields:
+** Client-ID: Client application ID for plain connections
+** TBD. Content-Type field, is it application-specific?
+** TBD. Interface version
 
 Reply:
 * Reply body contains the reply in application-specific data format.
-
-TBD. HTTP header telling source address. Nginx reverse proxy -> which HTTP headers telling source address are kept intact as default?
-
-
 
 Server responds with the following HTTP status codes:
 
