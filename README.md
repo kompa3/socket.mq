@@ -1,6 +1,8 @@
 # socket.mq
 Status: 0.1 DRAFT / IN PROGRESS
 
+TBD: Check AMQP over WebSocket http://docs.oasis-open.org/amqp-bindmap/amqp-wsb/v1.0/amqp-wsb-v1.0.html
+
 HTTP &amp; WebSocket based brokerless message queue
 * M2M, inter-process, and Frontend-Backend communication
 * Coherent and simple architecture that guarantees determenistic behavior
